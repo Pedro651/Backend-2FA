@@ -1,0 +1,102 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+model User{
+  id String @id @default(uuid())
+  name String
+  email String @unique
+  password String 
+  phone String? @unique
+  //Tipa ele como Role e que ele ja seja STAFF
+  role Role @default(STAFF)
+  status UserStatus @default(ACTIVE)
+
+
+  createdAt DateTime @default(now())
+  updateAt DateTime @updatedAt
+
+  resetPasswordToken ResetPasswordToken[]
+
+  cart Cart? //Relação de 1 pra 1 -> Isso serve pra poder pegar pelo user o carrinho dele 
+
+
+
+
+  @@map("users")
+}
+enum UserStatus{
+  ACTIVE
+  INACTIVE
+  BLOCKED
+}
+
+model ResetPasswordToken{
+  id String @id @default(uuid())
+  token String @unique
+  expiresAt DateTime 
+  createdAt DateTime @default(now())
+  
+  user_id String
+  user User @relation(fields: [user_id], references: [id], onDelete:Cascade)
+}
+
+enum Role{
+  STAFF
+  ADMIN
+}
+
+model Produto{
+  id String @id @default(uuid())
+  name String
+  description String
+  image String
+  disable Boolean @default(false)
+  createdAt DateTime @default(now())
+  updateAt DateTime @updatedAt
+  price Int
+
+
+  category_id String
+  categort Category @relation(fields: [category_id], references:[id], onDelete:Cascade)
+
+  cart_id String
+  cart Cart @relation(fields:[cart_id], references: [id], onDelete:Cascade)
+
+ @@map("Tarefas")
+}
+
+model Category{
+  id String @id @default(uuid())
+  name String
+
+ 
+  produto Produto[]
+
+ @@map("Category")
+}
+
+model Cart{
+  id String @id @default(uuid())
+  disable Boolean @default(false) //true significa que está aberto ,false é fechado
+ 
+  produto Produto[]
+
+
+  
+  user_id String @unique //-> Colocar unique pra fazer relação de 1 pra 1
+  user User @relation(fields:[user_id], references: [id], onDelete:Cascade)
+
+
+}
